@@ -61,14 +61,54 @@ const getShippingOptionTemplate = (shippingId) => {
     </div>
   </div>`;
 };
+
+const getInterledgerAddressOptionTemplate = (addresses) => {
+  let options = '';
+  addresses.forEach(function(data) {
+    // Sanitize ILP address to use as an id
+    const uniqueid = data.address.replace(/\./g, `-`).replace(/\~/g, '-');
+    data.domId = uniqueid;
+    options += `<div class="mdl-cell mdl-cell--7-col">
+      <div class="needs-mdl-upgrade mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+        <input class="mdl-textfield__input ilp-option-address" type="text" id="ilp-option-${uniqueid}-address" value="${data.address}">
+        <label class="mdl-textfield__label" for="ilp-option-${uniqueid}-address">Receiving Address</label>
+      </div>
+    </div>
+    <div class="mdl-cell mdl-cell--2-col">
+      <div class="needs-mdl-upgrade mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+        <input class="mdl-textfield__input ilp-option-currency" type="text" id="ilp-option-${uniqueid}-currency" value="${data.currencyCode}">
+        <label class="mdl-textfield__label" for="ilp-option-${uniqueid}-currency">Currency</label>
+      </div>
+    </div>
+    <div class="mdl-cell mdl-cell--1-col">
+      <div class="needs-mdl-upgrade mdl-textfield mdl-js-textfield  mdl-textfield--floating-label">
+        <input class="mdl-textfield__input ilp-option-rate" type="text" id="ilp-option-${uniqueid}-rate" value="${data.exchangeRate}">
+        <label class="mdl-textfield__label" for="ilp-option-${uniqueid}-rate">Rate</label>
+      </div>
+    </div>
+    <div class="mdl-cell mdl-cell--2-col center-selected">
+      <label class="needs-mdl-upgrade mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="ilp-option-${uniqueid}-selected">
+        <input type="checkbox" id="ilp-option-${uniqueid}-selected" class="mdl-checkbox__input shipping-opt-selected" checked>
+        <span class="mdl-checkbox__label">Accepted</span>
+      </label>
+    </div>`;
+  });
+
+  return `<div class="mdl-grid mdl-grid--no-spacing ilp-options-wrapper">
+    ${options}
+  </div>`;
+};
+
 /* eslint-enable max-len */
 
 class DemoController {
   constructor() {
     this._shippingId = 0;
+    this._interledgerAddresses = [];
 
     // Just to set the initial state
     this.onEnableShippingChange();
+    this.onEnableInterldgerChange();
 
     const addDisplayItemBtn = document.querySelector('.add-display-item');
     addDisplayItemBtn.addEventListener('click', () => this.addDisplayItem());
@@ -77,6 +117,13 @@ class DemoController {
     enableShippingCheckbox.addEventListener('change',
       () => this.onEnableShippingChange());
 
+    const enableInterledgerCheckbox = document.querySelector('#checkbox-interledger');
+    enableInterledgerCheckbox.addEventListener('change',
+      () => this.onEnableInterldgerChange());
+  
+    const getAddressesBtn = document.querySelector('.get-addresses-btn');
+    getAddressesBtn.addEventListener('click', () => this.getAddresses());
+        
     const addShippingOptBtn = document.querySelector('.add-shipping-opt');
     addShippingOptBtn.addEventListener('click', () => this.addShippingOpt());
 
@@ -95,10 +142,10 @@ class DemoController {
     const newDisplayItem = documentHack.firstChild;
 
     const mdlElements = newDisplayItem.querySelectorAll(`.needs-mdl-upgrade`);
-	for (var i = 0; i < mdlElements.length; i++) {
-	  var mdlElement = mdlElements[i];
-	  window.componentHandler.upgradeElement(mdlElement);
-	}
+    for (var i = 0; i < mdlElements.length; i++) {
+      var mdlElement = mdlElements[i];
+      window.componentHandler.upgradeElement(mdlElement);
+    }
 
     const itemsContainer = document.querySelector('.display-items-container');
     itemsContainer.appendChild(newDisplayItem);
@@ -113,82 +160,71 @@ class DemoController {
     const newDisplayItem = documentHack.firstChild;
 
     const mdlElements = newDisplayItem.querySelectorAll(`.needs-mdl-upgrade`);
-	for (var i = 0; i < mdlElements.length; i++) {
-	  var mdlElement = mdlElements[i];
-	  window.componentHandler.upgradeElement(mdlElement);
-	}
+    for (var i = 0; i < mdlElements.length; i++) {
+      var mdlElement = mdlElements[i];
+      window.componentHandler.upgradeElement(mdlElement);
+    }
 
     const itemsContainer = document.querySelector('.shipping-opts-container');
     itemsContainer.appendChild(newDisplayItem);
   }
 
-  _createPaymentRequest() {
-    // Supported payment methods
-    const supportedCardNetworks = [];
-    const basicCardCheckboxes = document.querySelectorAll(
-      '.basic-card-payment-methods input[type=\'checkbox\']');
-	for (var i = 0; i < basicCardCheckboxes.length; i++) {
-		var basicCardCheckbox = basicCardCheckboxes[i];
-		if (basicCardCheckbox.checked &&
-			basicCardCheckbox.dataset.cardnetwork) {
-			supportedCardNetworks.push(basicCardCheckbox.dataset.cardnetwork);
-		}
-	}
-    const basicCards = {
-      supportedMethods: ['basic-card'],
-      data: {
-        supportedNetworks: supportedCardNetworks,
-      },
-    };
+  getAddresses() {
+      api.get('/demo/ilp-addresses.json').then((data) => {
+        this._interledgerAddresses = data;
+        const itemsContainer = document.querySelector('.ilp-options-container');
+        itemsContainer.innerHTML = '';
+        const templateString = getInterledgerAddressOptionTemplate(data);
+        const documentHack = document.createElement('div');
+        documentHack.innerHTML = templateString;
+        const newDisplayItem = documentHack.firstChild;
+        const mdlElements = newDisplayItem.querySelectorAll(`.needs-mdl-upgrade`);
+        for (let i = 0; i < mdlElements.length; i++) {
+            const mdlElement = mdlElements[i];
+            window.componentHandler.upgradeElement(mdlElement);
+        }
+        itemsContainer.appendChild(newDisplayItem);
+      });
+  }
 
+  _createPaymentRequest() {
+    // Get DisplayItems
     const displayItemsFromUI = [];
     const displayItemElements =
       document.querySelectorAll('.display-item-wrapper');
-	for (var i = 0; i < displayItemElements.length; i++) {
-		var displayItemElement = displayItemElements[i];
-		const labelValue =
-        displayItemElement.querySelector('.display-item-label').value;
-	    const amountValue =
-		  displayItemElement.querySelector('.display-item-amount').value;
-	    const currencyValue =
-		  displayItemElement.querySelector('.display-item-currency').value;
+    for (let i = 0; i < displayItemElements.length; i++) {
+      let displayItemElement = displayItemElements[i];
+      const labelValue =
+          displayItemElement.querySelector('.display-item-label').value;
+        const amountValue =
+        displayItemElement.querySelector('.display-item-amount').value;
+        const currencyValue =
+        displayItemElement.querySelector('.display-item-currency').value;
 
-	    if (!labelValue || labelValue.length === 0 ||
-		  !amountValue || amountValue.length === 0) {
-		  console.warn('Found a display item without a label and / ' +
-		    'or amount value so excluding it from the results.');
-		  return;
-	    }
+        if (!labelValue || labelValue.length === 0 ||
+        !amountValue || amountValue.length === 0) {
+        console.warn('Found a display item without a label and / ' +
+          'or amount value so excluding it from the results.');
+        return;
+        }
 
-	    displayItemsFromUI.push({
-		  label: labelValue,
-		  amount: {
-		    currency: currencyValue,
-		    value: amountValue,
-		  },
-	    });
-	}
+        displayItemsFromUI.push({
+        label: labelValue,
+        amount: {
+          currency: currencyValue,
+          value: amountValue,
+        },
+        });
+    }
 
-    const totalLabelValue =
-      document.querySelector('.summary-label').value;
-    const totalCurrencyValue =
-      document.querySelector('.summary-currency').value;
-    const totalAmountValue =
-      document.querySelector('.summary-amount').value;
+    const totalFromUI = this._getTotalFromUI();
 
-    const totalFromUI = {
-      label: totalLabelValue,
-      amount: {
-        currency: totalCurrencyValue,
-        value: totalAmountValue,
-      },
-    };
-
+    // Get ShippingOptions
     const shippingOptionsFromUI = [];
     const shippingOptionElements =
       document.querySelectorAll('.shipping-options-wrapper');
-	for (var i = 0; i < shippingOptionElements.length; i++) {
-	  var shippingOptionElement = shippingOptionElements[i];
+    for (let i = 0; i < shippingOptionElements.length; i++) {
+      let shippingOptionElement = shippingOptionElements[i];
       const idValue =
         shippingOptionElement.querySelector('.shipping-opt-id').value;
       const labelValue =
@@ -218,6 +254,7 @@ class DemoController {
       });
     }
 
+    // Get options
     const options = {
       requestPayerName: false,
       requestPayerPhone: false,
@@ -246,8 +283,7 @@ class DemoController {
       options.shippingType = selectedShippingType.value;
     }
 
-    // Why is this an array of an object with supportedMethods?
-    const supportedInstruments = [basicCards];
+    // Get Details
     const details = {
       displayItems: displayItemsFromUI,
       // Excluding total will result in an error - it's a required field.
@@ -255,31 +291,102 @@ class DemoController {
       shippingOptions: shippingOptionsFromUI,
     };
 
-    const paymentRequest = new PaymentRequest(
-      supportedInstruments,
-      details,
-      options);
+    return this._getSupportedMethods()
+    .then((supportedMethods) => {
+      const paymentRequest = new PaymentRequest(
+        supportedMethods,
+        details,
+        options);
 
-    paymentRequest.addEventListener(
-      'shippingaddresschange',
-      (event) => this.onShippingAddressChange(event, details)
-    );
-    paymentRequest.addEventListener(
-      'shippingoptionchange',
-      (event) => this.onShippingOptionChange(event, details)
-    );
+      paymentRequest.addEventListener(
+        'shippingaddresschange',
+        (event) => this.onShippingAddressChange(event, details)
+      );
 
-    return paymentRequest;
+      paymentRequest.addEventListener(
+        'shippingoptionchange',
+        (event) => this.onShippingOptionChange(event, details)
+      );
+
+      return paymentRequest;
+    });
+  }
+
+  _getSupportedMethods() {
+    const total = this._getTotalFromUI();
+    const promises = [];
+    if (document.querySelector('#checkbox-interledger').checked) {
+      // Queue up a request to build a payment request for each receive address
+      this._interledgerAddresses.forEach((address) => {
+        const selector = `#ilp-option-${address.domId}-selected`;
+        if(document.querySelector(selector).checked) {
+          promises.push(
+            this._fetchInterledgerPaymentRequest(
+              address.address,
+              total.amount.currency,
+              total.amount.value)
+            );
+        }
+      });
+    }
+
+    // Basic Card
+    const supportedCardNetworks = [];
+    const basicCardCheckboxes = document.querySelectorAll(
+      '.basic-card-payment-methods input[type=\'checkbox\']');
+    for (var i = 0; i < basicCardCheckboxes.length; i++) {
+      var basicCardCheckbox = basicCardCheckboxes[i];
+      if (basicCardCheckbox.checked &&
+        basicCardCheckbox.dataset.cardnetwork) {
+        supportedCardNetworks.push(basicCardCheckbox.dataset.cardnetwork);
+      }
+    }
+    promises.push(Promise.resolve({
+        supportedMethods: ['basic-card'],
+        data: {
+          supportedNetworks: supportedCardNetworks,
+        },
+    }));
+
+    return Promise.all(promises);
+  }
+
+  _fetchInterledgerPaymentRequest(address, currency, amount) {
+    return api.post(`/demo/create-payment-request`, {
+      currency: currency,
+      amount: amount,
+      address: address,
+    }).then((data) => {
+      return {
+        supportedMethods: ['interledger'],
+        data: data,
+      };
+    });
+  }
+
+  _getTotalFromUI() {
+    const totalLabelValue = document.querySelector('.summary-label').value;
+    const totalCurrencyValue = document.querySelector('.summary-currency').value;
+    const totalAmountValue = document.querySelector('.summary-amount').value;
+
+    return {
+      label: totalLabelValue,
+      amount: {
+        currency: totalCurrencyValue,
+        value: totalAmountValue,
+      },
+    };    
   }
 
   canMakePaymentClick() {
-    const paymentRequest = this._createPaymentRequest();
     const cmpResultContainer =
-        document.querySelector('.can-make-payment-result-container pre');
+    document.querySelector('.can-make-payment-result-container pre');
 
-    paymentRequest.canMakePayment()
-    .then((result) => {
-      cmpResultContainer.textContent = JSON.stringify(result, null, 2);
+    this._createPaymentRequest().then((paymentRequest) => {
+      paymentRequest.canMakePayment()
+      .then((result) => {
+        cmpResultContainer.textContent = JSON.stringify(result, null, 2);
+      });
     })
     .catch((err) => {
       cmpResultContainer.textContent = err.message;
@@ -293,11 +400,10 @@ class DemoController {
   }
 
   buyNowClick() {
-    var paymentRequest = this._createPaymentRequest();
-
-    paymentRequest.show()
-    .then((result) => {
-      // Process the payment
+    this._createPaymentRequest().then((paymentRequest) => {
+      return paymentRequest.show();
+    }).then((result) => {
+      // Process the result
       const data = {};
       data.methodName = result.methodName;
       data.details = result.details;
@@ -314,7 +420,14 @@ class DemoController {
       return result.complete('success');
     })
     .catch((err) => {
-      console.group(
+      const prResultContainer =
+      document.querySelector('.payment-request-result-container pre');
+    prResultContainer.textContent = 'The promise from `paymentRequest.show()' +
+      ' was rejected.\n' +
+      'This is normally due to the user closing or cancelling the payment' +
+      ' request UI.';
+
+    console.group(
         'The promise from `paymentRequest.show()` was rejected.');
       console.warn('This is normally due to the user closing or cancelling ' +
         'the payment request UI.');
@@ -334,6 +447,17 @@ class DemoController {
       shippingEnabledUI.classList.remove('is-disabled');
     } else {
       shippingEnabledUI.classList.add('is-disabled');
+    }
+  }
+
+  onEnableInterldgerChange() {
+    const isEnabled = document.querySelector('#checkbox-interledger').checked;
+    const interledgerEnabledUI =
+      document.querySelector('.depends-on-interledger-enabled');
+    if (isEnabled) {
+      interledgerEnabledUI.classList.remove('is-disabled');
+    } else {
+      interledgerEnabledUI.classList.add('is-disabled');
     }
   }
 

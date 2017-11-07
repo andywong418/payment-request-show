@@ -3,10 +3,16 @@
   "version": "0.0.0",
   "description": "Payment Request API demo site.",
   "scripts": {
+    "start": "node app.js",
     "lint": "eslint '.'",
     "gulp": "gulp generate-service-worker"
   },
   "license": "Apache-2.0",
+  "dependencies": {
+    "express": "^4.13.4",
+    "ilp-plugin-payment-channel-framework": "github:interledgerjs/ilp-plugin-payment-channel-framework#bs-clp",
+    "ilp-plugin-xrp-escrow": "github:michielbdejong/ilp-plugin-xrp-escrow#72e4178"
+  },
   "devDependencies": {
     "eslint": "^3.19.0",
     "eslint-config-google": "^0.7.1",

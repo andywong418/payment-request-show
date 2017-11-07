@@ -70,6 +70,20 @@
         })]);
       }
 
+      if (document.getElementById('interledger').checked) {
+        return Promise.all([registration.paymentManager.instruments.set(
+        "5c077d7a-0a4a-4a08-986a-7fb0f5b08b13",
+        {
+          name: "Ripple via ILP",
+          icons: [{
+            src:"/pay/ilp_icon.png",
+            sizes:"32x32",
+            type:"image/png"}
+          ],
+          enabledMethods: ["interledger"]
+        })]);
+      }
+
       return Promise.all([registration.paymentManager.instruments.set(
         "dc2de27a-ca5e-4fbd-883e-b6ded6c69d4f",
         {
@@ -224,6 +238,7 @@
                     &#10060;&nbsp;&nbsp;&nbsp;BobPay Web Payment App is not installed <a href="https://github.com/madmath/payment-request-show/tree/master/bobpay/public/pay">(see the source)</a>. <a href="#installit" onclick="registerPaymentAppServiceWorker()"><img src="https://www.gstatic.com/images/icons/material/system/1x/cloud_download_black_24dp.png"></a>
                     </p>
                     <input id="alipay" type="checkbox" value="">AliPay</label>
+                    <input id="interledger" type="checkbox" value="">Interledger</label>
                     <p id="bobpayerror" class="error-message"></p>
                 </div>
             </div>

@@ -68,8 +68,9 @@
               <p>The values will not add up in the total since the <strong>Payment Request API does no calculations</strong>.</p>
 
               <h5>Select Supported Payment Methods</h5>
-              <p>The Payment Request API has a range of support payment methods, this demo currently only supports basic credit cards
-              but the Payment Request API can support third party payment processors.</p>
+              <p>The Payment Request API has a range of support payment methods, this demo currently only supports basic credit cards and the Interledger protocol but the Payment Request API can support third party payment processors.</p>
+
+              <h6>Basic Card - Supported Networks</h6>
 
               <div class="mdl-grid mdl-grid--no-spacing basic-card-payment-methods">
                 <div class="mdl-cell mdl-cell--6-col">
@@ -114,6 +115,29 @@
                 </div>
               </div>
 
+              <h6>Interledger Protocol</h6>
+              <p>The Interledger Protocol is an open protocol that standardizes the interactions between the payer and payee irrespective of the payment network(s) that are used to make the payment.</p>
+
+              <div class="mdl-grid mdl-grid--no-spacing interledger-options">
+                <div class="mdl-cell mdl-cell--6-col">
+                  <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="checkbox-interledger">
+                    <input type="checkbox" id="checkbox-interledger" class="mdl-checkbox__input">
+                    <span class="mdl-checkbox__label">Enable Interledger</span>
+                  </label>
+                </div>
+              </div>
+
+              <section class="depends-on-interledger-enabled">
+                <p>The available addresses are determined by which accounts the server is listneing on for incoming payments.</p>
+                <div class="mdl-grid mdl-grid--no-spacing interledger-options">
+                  <div class="mdl-cell mdl-cell--6-col">
+                    <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored get-addresses-btn">Get Available Interledger Addresses</button>
+                  </div>
+                </div>
+                <h6>Options</h6>
+                  <div class="ilp-options-container"></div>
+              </section>
+
               <h5>Order Summary</h5>
               <p>The order summary is the value that is shown most prominently to the user, it should be treated as the
                 total of the users transaction.</p>
@@ -128,7 +152,7 @@
                 </div>
                 <div class="mdl-cell mdl-cell--4-col">
                   <div class="mdl-textfield mdl-js-textfield  mdl-textfield--floating-label">
-                    <input class="mdl-textfield__input summary-amount" type="text" pattern="-?[0-9]*(\.[0-9]+)?" id="summary-amount" value="32">
+                    <input class="mdl-textfield__input summary-amount" type="text" pattern="-?[0-9]*(\.[0-9]+)?" id="summary-amount" value="50">
                     <label class="mdl-textfield__label" for="summary-amount">Amount</label>
                     <span class="mdl-textfield__error">The value must be a number.</span>
                   </div>
@@ -263,6 +287,7 @@
     </div>
     <script src="../js/material.min.js"></script>
     <script src="shipping-name-generator.js"></script>
+    <script src="api.js"></script>
     <script src="demo.js"></script>
   </body>
 </html>

@@ -11,12 +11,12 @@ self.addEventListener('paymentrequest', function(e) {
   payment_request_resolver = new PromiseResolver();
   e.respondWith(payment_request_resolver.promise);
 
-  var url = "https://bobpay.xyz/pay";
+  let url = "./index.html";
   // The methodData here represents what the merchant supports. We could have a
-  // payment selection screen, but for this simple demo if we see alipay in the list
-  // we send the user through the alipay flow.
-  if (e.methodData[0].supportedMethods[0].indexOf('alipay') != -1)
-    url += "/alipay.html";
+  // payment selection screen, but for this simple demo if we see interledger in the list
+  // we send the user through the interledger flow.
+  if (e.methodData[0].supportedMethods[0].indexOf('interledger') != -1)
+    url = "./interledger.html";
 
   e.openWindow(url)
     .then(window_client => {
@@ -58,7 +58,12 @@ function sendPaymentRequest() {
       // send to the payment app confirmation page.
       // Note that the entire PaymentRequestEvent can not be passed through
       // postMessage directly since it can not be cloned.
-      clientList[i].postMessage(payment_request_event.total);
+      clientList[i].postMessage({
+        paymentRequestId: payment_request_event.paymentRequestId,
+        paymentRequestOrigin: payment_request_event.paymentRequestOrigin,
+        instrumentKey: payment_request_event.instrumentKey,
+        methodData: payment_request_event.methodData,
+      });
     }
   });
 }
