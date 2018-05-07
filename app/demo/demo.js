@@ -62,6 +62,23 @@ const getShippingOptionTemplate = (shippingId) => {
   </div>`;
 };
 
+const newInterledgerTemplate = (paymentPointers) => {
+  let options = ''
+
+  paymentPointers.forEach(paymentPointer => {
+    const slicedId = paymentPointer.slice(1)
+    paymentPointer.domId = slicedId
+    options += `<div class="mdl-cell mdl-cell--7-col">
+      <div class="needs-mdl-upgrade mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+        <input class="mdl-textfield__input ilp-option-address" type="text" id="ilp-option-${slicedId}-address" value="${paymentPointer}">
+        <label class="mdl-textfield__label" for="ilp-option-${slicedId}-address">Receiving Payment Pointer</label>
+      </div>
+    </div>`
+  })
+  return `<div class="mdl-grid mdl-grid--no-spacing ilp-options-wrapper">
+    ${options}
+  </div>`;
+}
 const getInterledgerAddressOptionTemplate = (addresses) => {
   let options = '';
   addresses.forEach(function(data) {
@@ -108,7 +125,7 @@ class DemoController {
 
     // Just to set the initial state
     this.onEnableShippingChange();
-    this.onEnableInterldgerChange();
+    this.onEnableInterledgerChange();
 
     const addDisplayItemBtn = document.querySelector('.add-display-item');
     addDisplayItemBtn.addEventListener('click', () => this.addDisplayItem());
@@ -119,11 +136,11 @@ class DemoController {
 
     const enableInterledgerCheckbox = document.querySelector('#checkbox-interledger');
     enableInterledgerCheckbox.addEventListener('change',
-      () => this.onEnableInterldgerChange());
-  
+      () => this.onEnableInterledgerChange());
+
     const getAddressesBtn = document.querySelector('.get-addresses-btn');
     getAddressesBtn.addEventListener('click', () => this.getAddresses());
-        
+
     const addShippingOptBtn = document.querySelector('.add-shipping-opt');
     addShippingOptBtn.addEventListener('click', () => this.addShippingOpt());
 
@@ -171,10 +188,11 @@ class DemoController {
 
   getAddresses() {
       api.get('/demo/ilp-addresses.json').then((data) => {
+        console.log("data", data)
         this._interledgerAddresses = data;
         const itemsContainer = document.querySelector('.ilp-options-container');
         itemsContainer.innerHTML = '';
-        const templateString = getInterledgerAddressOptionTemplate(data);
+        const templateString = newInterledgerTemplate(data);
         const documentHack = document.createElement('div');
         documentHack.innerHTML = templateString;
         const newDisplayItem = documentHack.firstChild;
@@ -318,15 +336,14 @@ class DemoController {
     if (document.querySelector('#checkbox-interledger').checked) {
       // Queue up a request to build a payment request for each receive address
       this._interledgerAddresses.forEach((address) => {
-        const selector = `#ilp-option-${address.domId}-selected`;
-        if(document.querySelector(selector).checked) {
-          promises.push(
-            this._fetchInterledgerPaymentRequest(
-              address.address,
-              total.amount.currency,
-              total.amount.value)
-            );
-        }
+        console.log("address", address)
+        promises.push({
+          supportedMethods: ['interledger'],
+          data: {
+            paymentPointer: address,
+            amount: total.amount.value
+          },
+        })
       });
     }
 
@@ -375,16 +392,17 @@ class DemoController {
         currency: totalCurrencyValue,
         value: totalAmountValue,
       },
-    };    
+    };
   }
 
   canMakePaymentClick() {
     const cmpResultContainer =
     document.querySelector('.can-make-payment-result-container pre');
-
+    console.log("anything?")
     this._createPaymentRequest().then((paymentRequest) => {
       paymentRequest.canMakePayment()
       .then((result) => {
+        console.log("result", result)
         cmpResultContainer.textContent = JSON.stringify(result, null, 2);
       });
     })
@@ -401,9 +419,11 @@ class DemoController {
 
   buyNowClick() {
     this._createPaymentRequest().then((paymentRequest) => {
+      console.log("paymentRequest", paymentRequest)
       return paymentRequest.show();
     }).then((result) => {
       // Process the result
+      console.log("result", result)
       const data = {};
       data.methodName = result.methodName;
       data.details = result.details;
@@ -420,6 +440,7 @@ class DemoController {
       return result.complete('success');
     })
     .catch((err) => {
+      console.log("err", err)
       const prResultContainer =
       document.querySelector('.payment-request-result-container pre');
     prResultContainer.textContent = 'The promise from `paymentRequest.show()' +
@@ -450,7 +471,7 @@ class DemoController {
     }
   }
 
-  onEnableInterldgerChange() {
+  onEnableInterledgerChange() {
     const isEnabled = document.querySelector('#checkbox-interledger').checked;
     const interledgerEnabledUI =
       document.querySelector('.depends-on-interledger-enabled');

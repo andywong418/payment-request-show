@@ -1,15 +1,13 @@
 {
-  "name": "Pay with BobPay",
-  "short_name": "BobPay",
+  "name": "Pay with Interledger",
+  "short_name": "Interledger",
   "icons": [{
-  	"src": "tree.png",
-  	"sizes": "48x48",
+  	"src": "ilp_icon.png",
+  	"sizes": "32x32",
   	"type": "image/png"
   }],
-  "prefer_related_applications": true,
-  "related_applications": [{
-  	"platform": "play",
-  	"url": "https://play.google.com/store/apps/details?id=com.bobpay",
-  	"id": "com.bobpay"
-  }]
+  "serviceworker": {
+    "src": "./sw-interledgerpay.js",
+    "use_cache": false
+  }
 }

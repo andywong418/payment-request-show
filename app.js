@@ -38,9 +38,9 @@ plugins.push({
 
 /**
  * Register a plugin with the server including the rate of exchange to use.
- * 
+ *
  * Will connect the plugin and get info about the ledger and account
- * 
+ *
  * @param {*} plugin An LPI plugin configured for a receiving account
  * @param {*} exchangeRate The exchange rates this receiving account uses vs the
  */
@@ -104,9 +104,15 @@ function registerPaymentHandler(plugin) {
 }
 
 const app = express();
-
+const paymentPointers = [
+  '$ilp-demo1.localtunnel.me'
+];
 app.get('/demo/ilp-addresses.json', (req, res) => {
   let pluginData = [];
+  let paymentPointerData = [];
+  paymentPointers.forEach( paymentPointer => {
+    paymentPointerData.push(paymentPointer)
+  })
   plugins.forEach(function(plugin) {
     pluginData.push({
       address: plugin.account,
@@ -115,7 +121,8 @@ app.get('/demo/ilp-addresses.json', (req, res) => {
       exchangeRate: plugin.exchangeRate,
     });
   });
-  res.json(pluginData);
+  console.log("paymentPointers", paymentPointerData)
+  res.send(paymentPointerData);
 });
 
 /**

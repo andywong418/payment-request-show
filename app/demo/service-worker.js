@@ -37,7 +37,7 @@
 /* eslint-disable indent, no-unused-vars, no-multiple-empty-lines, max-nested-callbacks, space-before-function-paren, quotes, comma-spacing */
 'use strict';
 
-var precacheConfig = [["/demo/api.js","caeb2da05af9167e27f7a1735581c580"],["/demo/demo.css","7a515aaf3c344269d84c801ed80311c9"],["/demo/demo.js","92011255be04fa9fffcb9a3294018f75"],["/demo/index.html","49b3717dbc020b2844b84ffea1d5bdbc"],["/demo/service-worker.js","b17010769f19414b431c36f8fdc7b439"],["/demo/shipping-name-generator.js","1366cf79731d50362927fa1e1584c690"],["/images/payment_icon_144px.png","a655eccde0011236477da997e09812e0"],["/index.html","0842f8dc9e72d8e82fa881373c9912f0"],["/js/material.min.js","240538c21d8b76e56153cae9d66b4524"],["/service-worker-registration.js","5237fd43ab903d2748e1f0c513ebee72"],["/styles/main.css","d4fb4619d67f4bdbb9a9e4d775ecec2a"],["/styles/material.indigo-pink.min.css","5c74be021c1cc26962b0f7f3326125c8"]];
+var precacheConfig = [["/demo/demo.css","7a515aaf3c344269d84c801ed80311c9"],["/demo/demo.js","2c23b23dbe5255becc322ede8b352f1b"],["/demo/index.html","69c80c3f36e3c103723539697ff80bb5"],["/demo/shipping-name-generator.js","1366cf79731d50362927fa1e1584c690"],["/images/payment_icon_144px.png","a655eccde0011236477da997e09812e0"],["/index.html","0842f8dc9e72d8e82fa881373c9912f0"],["/js/material.min.js","240538c21d8b76e56153cae9d66b4524"],["/service-worker-registration.js","0b4c35226075896152de214f8860b76e"],["/styles/main.css","d4fb4619d67f4bdbb9a9e4d775ecec2a"],["/styles/material.indigo-pink.min.css","5c74be021c1cc26962b0f7f3326125c8"]];
 var cacheName = 'sw-precache-v3--' + (self.registration ? self.registration.scope : '');
 
 
@@ -96,7 +96,7 @@ var isPathWhitelisted = function (whitelist, absoluteUrlString) {
     if (whitelist.length === 0) {
       return true;
     }
-
+    console.log("whitelist", whitelist)
     // Otherwise compare each path regex to the path of the URL passed in.
     var path = (new URL(absoluteUrlString)).pathname;
     return whitelist.some(function(whitelistedPathRegex) {
@@ -176,10 +176,10 @@ self.addEventListener('install', function(event) {
         );
       });
     }).then(function() {
-      
+
       // Force the SW to transition from installing -> active state
       return self.skipWaiting();
-      
+
     })
   );
 });
@@ -199,9 +199,9 @@ self.addEventListener('activate', function(event) {
         );
       });
     }).then(function() {
-      
+
       return self.clients.claim();
-      
+
     })
   );
 });
@@ -259,10 +259,3 @@ self.addEventListener('fetch', function(event) {
     }
   }
 });
-
-
-
-
-
-
-

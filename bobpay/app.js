@@ -25,7 +25,7 @@ app.post('/send-payment', express.json(), (req, res, next) => {
   const destinationAddress = data.address;
   const ilpPacket = data.packet;
   const condition = data.condition;
-  
+
   console.log(`Sending payment of ${destinationAmount} ` +
                 `to ${destinationAddress} (tx: ${transferId})`);
 
@@ -67,7 +67,13 @@ app.post('/send-payment', express.json(), (req, res, next) => {
 app.use((err, req, res, next) => {
   console.error(err.stack);
 });
-
+app.use(function(req, res, next) {
+  res.status(200).links({
+    'payment-method-manifest':
+    'http://localhost:8080/pay/manifest.json'
+    });
+    return next();
+});
 // We are mostly a static website.
 app.get('*', express.static('public'));
 

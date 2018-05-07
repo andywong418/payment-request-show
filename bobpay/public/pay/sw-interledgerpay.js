@@ -9,17 +9,22 @@ self.addEventListener('paymentrequest', function(e) {
   payment_request_event = e;
 
   payment_request_resolver = new PromiseResolver();
+  console.log('payment request promise', payment_request_resolver)
   e.respondWith(payment_request_resolver.promise);
 
-  let url = "./index.html";
+  let url = "http://localhost:8080/pay/";
   // The methodData here represents what the merchant supports. We could have a
   // payment selection screen, but for this simple demo if we see interledger in the list
   // we send the user through the interledger flow.
-  if (e.methodData[0].supportedMethods[0].indexOf('interledger') != -1)
-    url = "./interledger.html";
-
+  console.log("e", e, e.methodData[0].supportedMethods[0], e.methodData[0].supportedMethods[0].indexOf('interledger'))
+  if (e.methodData[0].supportedMethods[0].indexOf('interledger') !== -1) {
+    console.log("what")
+    url = "http://localhost:8080/pay/interledger.html";
+  }
+  console.log("final url", url)
   e.openWindow(url)
     .then(window_client => {
+      console.log("window client?", window_client)
       if(window_client == null)
         payment_request_resolver.reject('Failed to open window');
     })
@@ -50,7 +55,7 @@ function sendPaymentRequest() {
     type: 'window'
   };
   clients.matchAll(options).then(function(clientList) {
-    for(var i = 0; i < clientList.length; i++) {
+    for(let i = 0; i < clientList.length; i++) {
       // Might do more communications or checks to make sure the message is
       // posted to the correct window only.
 

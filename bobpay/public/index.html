@@ -51,27 +51,13 @@
      * Utilities for registering/unregistering the Payment App service worker.
      */
 
-    const SERVICE_WORKER_URL = '/pay/sw-bobpay.js'
+    const SERVICE_WORKER_URL = 'http://localhost:8080/pay/sw-interledgerpay.js'
 
     // Adds the BobPay default instrument.
     function addInstruments(registration) {
       registration.paymentManager.userHint = "test@bobpay.xyz";
-      if (document.getElementById('alipay').checked) {
-        return Promise.all([registration.paymentManager.instruments.set(
-        "c8126178-3bba-4d09-8f00-0771deadbeef",
-        {
-          name: "AliPay (via BobPay)",
-          icons: [{
-            src:"https://i.alipayobjects.com/common/favicon/favicon.ico",
-            sizes:"32x32",
-            type:"image/png"}
-          ],
-          enabledMethods: ["https://www.alipay.com/webpay"]
-        })]);
-      }
-
-      if (document.getElementById('interledger').checked) {
-        return Promise.all([registration.paymentManager.instruments.set(
+      return Promise.all([
+        registration.paymentManager.instruments.set(
         "5c077d7a-0a4a-4a08-986a-7fb0f5b08b13",
         {
           name: "Ripple via ILP",
@@ -80,21 +66,19 @@
             sizes:"32x32",
             type:"image/png"}
           ],
-          enabledMethods: ["interledger"]
-        })]);
-      }
-
-      return Promise.all([registration.paymentManager.instruments.set(
-        "dc2de27a-ca5e-4fbd-883e-b6ded6c69d4f",
-        {
-          name: "My Bob Pay Account",
-          icons: [{
-            src:"/pay/bobpay.png",
-            sizes:"32x32",
-            type:"image/png"}
-          ],
-          enabledMethods: ["https://emerald-eon.appspot.com/bobpay"]
-        })]);
+          method: "interledger"
+        }),
+        registration.paymentManager.instruments.set(
+            "new-card",
+            {
+                name: "Add a new card to BobPay",
+                method: "basic-card",
+                capabilities: {
+                    supportedNetworks: ["visa", "mastercard", "amex", "discover"],
+                    supportedTypes: ["credit", "debit", "prepaid"]
+                }
+            }),
+      ]);
     };
 
     // Shows/hides the webpage controls for installing/removing the service
@@ -126,7 +110,6 @@
           showBobPayError('Payment app capability not present. Enable flags?');
           return;
         }
-
         addInstruments(registration).then(function() {
             showBobPayStatus(/*enabled=*/true);
         });
